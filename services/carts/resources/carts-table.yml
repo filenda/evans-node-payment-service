@@ -1,0 +1,17 @@
+Resources:
+  CartsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.tableName}
+      AttributeDefinitions:
+        - AttributeName: idCliente
+          AttributeType: S
+        - AttributeName: cartId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: idCliente
+          KeyType: HASH
+        - AttributeName: cartId
+          KeyType: RANGE
+      # Set the capacity to auto-scale
+      BillingMode: PAY_PER_REQUEST

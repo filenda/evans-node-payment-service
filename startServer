@@ -5,7 +5,8 @@ const http = require("http");
 const httpProxy = require("http-proxy");
 const services = [
   { route: "/transactions/*", path: "services/transactions", port: 3001 },
-  { route: "/orders/*", path: "services/orders", port: 3002 }
+  { route: "/orders/*", path: "services/orders", port: 3002 },
+  { route: "/carts/*", path: "services/carts", port: 3003 }
 ];
 
 // Start `sls offline` for each service

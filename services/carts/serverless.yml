@@ -1,10 +1,11 @@
-service: evans-node-orders-service
+service: evans-node-carts-service
 
 plugins:
   - serverless-bundle
   - serverless-offline
 
 custom: ${file(../../serverless.common.yml):custom}
+tableName: ${self:custom.stage}-carts
 
 package:
   individually: true
@@ -22,7 +23,6 @@ provider:
     resourcesStage: ${self:custom.resourcesStage}
 
   iamRoleStatements:
-    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
       Action:
         - dynamodb:DescribeTable
@@ -35,82 +35,85 @@ provider:
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
-        - "Fn::ImportValue": ${self:custom.resourcesStage}-ExtNotesTableArn
+        - "Fn::GetAtt": [CartsTable, Arn]
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
-  # - path: url path is /notes
+  # - path: url path is /carts
   # - method: POST request
   # - cors: enabled CORS (Cross-Origin Resource Sharing) for browser cross
   #     domain api call
   # - authorizer: authenticate using the AWS IAM role
   create:
-    handler: create.main
+    handler: functions/create.main
     events:
       - http:
-          path: notes
+          path: carts
           method: post
           cors: true
-          authorizer: aws_iam
+          # authorizer: aws_iam
 
   get:
     # Defines an HTTP API endpoint that calls the main function in get.js
-    # - path: url path is /notes/{id}
+    # - path: url path is /carts/{id}
     # - method: GET request
-    handler: get.main
+    handler: functions/get.main
     events:
       - http:
-          path: notes/{id}
+          path: carts/{id}
           method: get
           cors: true
-          authorizer: aws_iam
+          # authorizer: aws_iam
 
   list:
     # Defines an HTTP API endpoint that calls the main function in list.js
     # - path: url path is /notes
     # - method: GET request
-    handler: list.main
+    handler: functions/list.main
     events:
       - http:
-          path: notes
+          path: carts
           method: get
           cors: true
-          authorizer: aws_iam
+          # authorizer: aws_iam
 
   update:
     # Defines an HTTP API endpoint that calls the main function in update.js
     # - path: url path is /notes/{id}
     # - method: PUT request
-    handler: update.main
+    handler: functions/update.main
     events:
       - http:
-          path: notes/{id}
+          path: carts/{id}
           method: put
           cors: true
-          authorizer: aws_iam
+          # authorizer: aws_iam
 
   delete:
     # Defines an HTTP API endpoint that calls the main function in delete.js
     # - path: url path is /notes/{id}
     # - method: DELETE request
-    handler: delete.main
+    handler: functions/delete.main
     events:
       - http:
-          path: notes/{id}
+          path: carts/{id}
           method: delete
           cors: true
-          authorizer: aws_iam
+          # authorizer: aws_iam
 
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
+
+  # DynamoDB
+  - ${file(resources/carts-table.yml)}
 
   - Outputs:
       ApiGatewayRestApiId:
         Value:
           Ref: ApiGatewayRestApi
         Export:
-          Name: ${self:custom.stage}-ExtApiGatewayRestApiId
+          Name: ${self:custom.stage}-ApiGatewayRestApiId
 
       ApiGatewayRestApiRootResourceId:
         Value:
@@ -118,4 +121,11 @@ resources:
             - ApiGatewayRestApi
             - RootResourceId
         Export:
-          Name: ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+          Name: ${self:custom.stage}-ApiGatewayRestApiRootResourceId
+      CartsTableArn:
+        Value:
+          Fn::GetAtt:
+            - CartsTable
+            - Arn
+        Export:
+          Name: ${self:custom.stage}-CartsTableArn
